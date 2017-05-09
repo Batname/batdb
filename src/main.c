@@ -1,7 +1,7 @@
-#include <stdio.h>
+#include "helpers.h"
 
 int main(int argc, char const *argv[])
 {
-    printf("%s\n", "Database start!");
+    test_print("DB running...");
     return 0;
 }
