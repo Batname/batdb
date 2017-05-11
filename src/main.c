@@ -9,6 +9,14 @@
 
 #define DB_FILE "/tmp/batdb.dat"
 
+struct Entity {
+    int id;
+    long lastTime;
+    char *fullName;
+    char *email;
+    char *description;
+}
+
 int main(int argc, char *argv[])
 {
     puts("DB start...");
