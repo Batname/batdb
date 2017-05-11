@@ -1,6 +1,7 @@
 #ifndef HELPERS
 #define HELPERS
 
-void test_print(char *message);
+void fatal(char *message);
+void usage(char *prog_name, char *filename);
 
 #endif
