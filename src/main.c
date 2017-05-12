@@ -11,6 +11,11 @@
 
 #define DB_FILE "/tmp/batdb.dat"
 
+char *mainMenu = 
+"1. Write data to database\n"
+"2. Read data from database\n"
+"0. Exit\n";
+
 struct Entity {
     int id;
     long lastTime;
@@ -39,19 +44,28 @@ int main(int argc, char *argv[])
     system("clear");
 
     int c;
-    printf("Enter your choise: >>> ");
+    printf("%s", mainMenu);
+    printf(">>> ");
     c = getchar();
-
-    system("clear");
 
     while(1)
     {
-        printf("Your chouise is <<< %c\n", c);
+        if (c == '1')
+        {
+
+        }
+        else if (c == '2')
+        {
+
+        }
+        else if (c == '0')
+        {
+            exit(0);
+        }
 
         while ((getchar()) != '\n');
-        printf("Enter your next choise: >>> ");
+        printf(">>> ");
         c = getchar();
-        system("clear");
     }
 
     // struct Entity entity;
