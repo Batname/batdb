@@ -50,12 +50,10 @@ void writeToDB(int fd)
             positions[y] = i;
             printf("position is %d value is %d\n", y, i);
             y++;
-            if (y >= pos_length) break;
+            if (y >= pos_length) {
+                break;
+            }
         }
-
-        if (i == buf_len - 1)
-            positions[pos_length-1] = i;
-
     }
 
     for(i = 0; i < pos_length; i++)
