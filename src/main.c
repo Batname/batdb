@@ -30,13 +30,40 @@ struct Meta {
     int count;
 };
 
-void readFromDB(FILE *fd, struct Meta *meta)
+void readFromDB(struct Meta *meta)
 {
-    printf("READ >>>");
+    struct Entity entity;
+    int entitySize = sizeof(struct Entity);
+    printf("READ >>> ");
+    int c = getchar();
+    char string[1];
+    string[0] = c;
+
+    int fd = open(DB_FILE, O_RDONLY);
+
+    pread(fd, &entity, entitySize, entitySize * (atoi(string)));
+    printf("id <<< %d\n", entity.id);
+    printf("lastTime <<< %d\n", entity.lastTime);
+    printf("fullName <<< %s\n", entity.fullName);
+    printf("email <<< %s\n", entity.email);
+    printf("description <<< %s\n", entity.description);
+
+    close(fd);
 }
 
-void writeToDB(FILE *fd, struct Meta *meta)
+void writeToDB(struct Meta *meta)
 {
+    int file_len = strlen(DB_FILE);
+    char *datafile;
+    datafile = (char*) malloc(file_len);
+    strcpy(datafile, DB_FILE);
+
+    FILE *fd;
+    // Opening file
+    fd = fopen(datafile, "a+b");
+    if (fd == NULL)
+        fatal("in main() while opening file");
+
     FILE *meta_fd;
     meta_fd = fopen(META_FILE, "wb");
     if (meta_fd == NULL)
@@ -89,29 +116,24 @@ void writeToDB(FILE *fd, struct Meta *meta)
     strncpy(entity.email, buffer + positions[0] + 1, positions[1]-positions[0] - 1);
     strncpy(entity.description, buffer + positions[1] + 1, positions[2]-positions[1] - 1);
 
-    // writing data
-    // if(write(fd, &entity, entitySize) == -1) 
-    //     fatal("in main while writing entity to file");
-    // write(fd, "\n", 1);
     fwrite(&entity, entitySize, 1, fd);
+
+    printf("OK, ID %d\n", meta->count);
 
     meta->count++;
     fwrite(meta, sizeof(struct Meta), 1, meta_fd);
 
-    printf("OK\n");
+
+    if (fclose(fd) == -1)
+        fatal("in main while closing file");
 }
 
 int main(int argc, char *argv[])
 {
     puts("DB start...");
 
-    int userid, file_len, buffer_len = 100;
-    char *metaData, *datafile, buffer;
-
-    file_len = strlen(DB_FILE);
-
-    datafile = (char*) malloc(file_len);
-    strcpy(datafile, DB_FILE);
+    int userid, buffer_len = 100;
+    char *metaData, buffer;
 
     // Meta file
     FILE *meta_fd;
@@ -131,13 +153,6 @@ int main(int argc, char *argv[])
     if (fclose(meta_fd) == -1)
         fatal("in main while closing meta file");
 
-
-    FILE *fd;
-    // Opening file
-    fd = fopen(datafile, "a+b");
-    if (fd == NULL)
-        fatal("in main() while opening file");
-
     system("clear");
 
     int c;
@@ -150,14 +165,14 @@ int main(int argc, char *argv[])
         if (c == '1')
         {
             while ((getchar()) != '\n');
-            writeToDB(fd, &meta);
+            writeToDB(&meta);
         }
         else if (c == '2')
         {
             while ((getchar()) != '\n');
-            readFromDB(fd, &meta);
+            readFromDB(&meta);
         }
-        else if (c == 'q')
+        else if (c == 'q' || c == '0')
         {
             exit(0);
         }
@@ -166,9 +181,6 @@ int main(int argc, char *argv[])
         printf(">>> ");
         c = getchar();
     }
-
-    if (fclose(fd) == -1)
-        fatal("in main while closing file");
 
     printf("Exit DB\n");
 
