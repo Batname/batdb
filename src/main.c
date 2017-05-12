@@ -77,7 +77,7 @@ void writeToDB(int fd, struct Meta *meta)
 
 
     struct Entity entity;
-    entity.id = meta->count;
+    entity.id = meta->count + 1;
     entity.lastTime = (int)time(NULL);
 
     memset(entity.fullName, 0, sizeof(entity.fullName));
@@ -96,6 +96,8 @@ void writeToDB(int fd, struct Meta *meta)
 
     meta->count++;
     fwrite(meta, sizeof(struct Meta), 1, meta_fd);
+
+    printf("OK\n");
 }
 
 int main(int argc, char *argv[])
