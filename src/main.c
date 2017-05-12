@@ -24,6 +24,21 @@ struct Entity {
     char description[200];
 };
 
+void readFromDB()
+{
+    printf("READ >>>");
+}
+
+void writeToDB()
+{
+    int rc, buf_len = 100;
+    char buffer[buf_len];
+
+    printf("WRITE >>> ");
+    scanf("%[^\n]s",buffer);
+    printf ("OK [%s]\n", buffer);
+}
+
 int main(int argc, char *argv[])
 {
     puts("DB start...");
@@ -52,11 +67,13 @@ int main(int argc, char *argv[])
     {
         if (c == '1')
         {
-
+            while ((getchar()) != '\n');
+            writeToDB();
         }
         else if (c == '2')
         {
-
+            while ((getchar()) != '\n');
+            readFromDB();
         }
         else if (c == '0')
         {
