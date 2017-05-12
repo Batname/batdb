@@ -31,12 +31,23 @@ void readFromDB()
 
 void writeToDB()
 {
-    int rc, buf_len = 100;
+    int entitySize = sizeof(struct Entity);
+    int rc, buf_len = entitySize + 5;
     char buffer[buf_len];
+    int i, y = 0;
+    char positions[5];
 
     printf("WRITE >>> ");
-    scanf("%[^\n]s",buffer);
+    scanf("%[^\n]s", buffer);
+
+    for (i = 0; i < strlen(buffer); i++)
+    {
+        if (buffer[i] == '|')
+            positions[++y] = i;
+    }
+
     printf ("OK [%s]\n", buffer);
+    printf ("OK [%d]\n", positions[3]);
 }
 
 int main(int argc, char *argv[])
@@ -75,7 +86,7 @@ int main(int argc, char *argv[])
             while ((getchar()) != '\n');
             readFromDB();
         }
-        else if (c == '0')
+        else if (c == 'q')
         {
             exit(0);
         }
