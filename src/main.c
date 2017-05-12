@@ -6,6 +6,7 @@
 #include <fcntl.h> // open function
 #include <unistd.h> // close function
 #include <sys/stat.h>
+#include <time.h>
 
 #include "helpers.h"
 
@@ -18,7 +19,7 @@ char *mainMenu =
 
 struct Entity {
     int id;
-    long lastTime;
+    int lastTime;
     char fullName[30];
     char email[30];
     char description[200];
@@ -31,9 +32,9 @@ void readFromDB(int fd)
 
 void writeToDB(int fd)
 {
-    int pos_length = 5;
+    int pos_length = 3;
     int entitySize = sizeof(struct Entity);
-    int rc, buf_len = entitySize + pos_length - 1;
+    int rc, buf_len = entitySize + pos_length - 1 - sizeof(int) * 2;
     char buffer[buf_len];
     int i, y = 0;
     char positions[pos_length];
@@ -69,16 +70,16 @@ void writeToDB(int fd)
 
     struct Entity entity;
     entity.id = 10;
-    entity.lastTime = 123;
+    entity.lastTime = (int)time(NULL);
 
     memset(entity.fullName, 0, sizeof(entity.fullName));
     memset(entity.email, 0, sizeof(entity.email));
     memset(entity.description, 0, sizeof(entity.description));
 
 
-    strncpy(entity.fullName, buffer + positions[1] + 1, positions[2]-positions[1] - 1);
-    strncpy(entity.email, buffer + positions[2] + 1, positions[3]-positions[2] - 1);
-    strncpy(entity.description, buffer + positions[3] + 1, positions[4]-positions[3] - 1);
+    strncpy(entity.fullName, buffer, positions[0]);
+    strncpy(entity.email, buffer + positions[0] + 1, positions[1]-positions[0] - 1);
+    strncpy(entity.description, buffer + positions[1] + 1, positions[2]-positions[1] - 1);
 
     // writing data
     if(write(fd, &entity, entitySize) == -1) 
