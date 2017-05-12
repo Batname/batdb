@@ -11,6 +11,7 @@
 #include "helpers.h"
 
 #define DB_FILE "/tmp/batdb.dat"
+#define META_FILE "/tmp/batdb.meta"
 
 char *mainMenu = 
 "1. Write data to database\n"
@@ -25,13 +26,22 @@ struct Entity {
     char description[200];
 };
 
+struct Meta {
+    int count;
+};
+
 void readFromDB(int fd)
 {
     printf("READ >>>");
 }
 
-void writeToDB(int fd)
+void writeToDB(int fd, struct Meta *meta)
 {
+    FILE *meta_fd;
+    meta_fd = fopen(META_FILE, "wb");
+    if (meta_fd == NULL)
+        fatal("in writeToDB() while opening metafile");
+
     int pos_length = 3;
     int entitySize = sizeof(struct Entity);
     int rc, buf_len = entitySize + pos_length - 1 - sizeof(int) * 2;
@@ -49,7 +59,6 @@ void writeToDB(int fd)
         if (buffer[i] == '|')
         {
             positions[y] = i;
-            printf("position is %d value is %d\n", y, i);
             y++;
             if (y >= pos_length) {
                 break;
@@ -59,7 +68,6 @@ void writeToDB(int fd)
 
     for(i = 0; i < pos_length; i++)
     {
-        printf("pos: %d\n", positions[i]);
         if (positions[i] == 0)
         {
             printf("[WARNING] wrong positoins\n");
@@ -69,7 +77,7 @@ void writeToDB(int fd)
 
 
     struct Entity entity;
-    entity.id = 10;
+    entity.id = meta->count;
     entity.lastTime = (int)time(NULL);
 
     memset(entity.fullName, 0, sizeof(entity.fullName));
@@ -85,6 +93,9 @@ void writeToDB(int fd)
     if(write(fd, &entity, entitySize) == -1) 
         fatal("in main while writing entity to file");
     write(fd, "\n", 1);
+
+    meta->count++;
+    fwrite(meta, sizeof(struct Meta), 1, meta_fd);
 }
 
 int main(int argc, char *argv[])
@@ -98,6 +109,24 @@ int main(int argc, char *argv[])
 
     datafile = (char*) malloc(file_len);
     strcpy(datafile, DB_FILE);
+
+    // Meta file
+    FILE *meta_fd;
+    struct Meta meta;
+
+    meta_fd = fopen(META_FILE, "rb");
+    if (meta_fd == NULL) {
+        meta_fd = fopen(META_FILE, "w+b");
+        meta.count = 0;
+        fwrite(&meta, sizeof(struct Meta), 1, meta_fd);
+    } else {
+        meta_fd = fopen(META_FILE, "r+b");
+    }
+
+    fread(&meta, sizeof(struct Meta), 1, meta_fd);
+
+    if (fclose(meta_fd) == -1)
+        fatal("in main while closing meta file");
 
     // Opening file
     fd = open(datafile,O_WRONLY|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR);
@@ -116,7 +145,7 @@ int main(int argc, char *argv[])
         if (c == '1')
         {
             while ((getchar()) != '\n');
-            writeToDB(fd);
+            writeToDB(fd, &meta);
         }
         else if (c == '2')
         {
@@ -136,10 +165,7 @@ int main(int argc, char *argv[])
     if (close(fd) == -1)
         fatal("in main while closing file");
 
-    // printf("Saved to DB\n");
-    // free(metaData);
-    // free(datafile);
-    // free(buffer);
+    printf("Exit DB\n");
 
     return 0;
 }
