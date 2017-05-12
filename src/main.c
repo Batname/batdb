@@ -24,30 +24,68 @@ struct Entity {
     char description[200];
 };
 
-void readFromDB()
+void readFromDB(int fd)
 {
     printf("READ >>>");
 }
 
-void writeToDB()
+void writeToDB(int fd)
 {
+    int pos_length = 5;
     int entitySize = sizeof(struct Entity);
-    int rc, buf_len = entitySize + 5;
+    int rc, buf_len = entitySize + pos_length - 1;
     char buffer[buf_len];
     int i, y = 0;
-    char positions[5];
+    char positions[pos_length];
+    memset(positions, 0, pos_length);
 
     printf("WRITE >>> ");
     scanf("%[^\n]s", buffer);
 
-    for (i = 0; i < strlen(buffer); i++)
+
+    for (i = 0; i < buf_len; i++)
     {
         if (buffer[i] == '|')
-            positions[++y] = i;
+        {
+            positions[y] = i;
+            printf("position is %d value is %d\n", y, i);
+            y++;
+            if (y >= pos_length) break;
+        }
+
+        if (i == buf_len - 1)
+            positions[pos_length-1] = i;
+
     }
 
-    printf ("OK [%s]\n", buffer);
-    printf ("OK [%d]\n", positions[3]);
+    for(i = 0; i < pos_length; i++)
+    {
+        printf("pos: %d\n", positions[i]);
+        if (positions[i] == 0)
+        {
+            printf("[WARNING] wrong positoins\n");
+            return;
+        }
+    }
+
+
+    struct Entity entity;
+    entity.id = 10;
+    entity.lastTime = 123;
+
+    memset(entity.fullName, 0, sizeof(entity.fullName));
+    memset(entity.email, 0, sizeof(entity.email));
+    memset(entity.description, 0, sizeof(entity.description));
+
+
+    strncpy(entity.fullName, buffer + positions[1] + 1, positions[2]-positions[1] - 1);
+    strncpy(entity.email, buffer + positions[2] + 1, positions[3]-positions[2] - 1);
+    strncpy(entity.description, buffer + positions[3] + 1, positions[4]-positions[3] - 1);
+
+    // writing data
+    if(write(fd, &entity, entitySize) == -1) 
+        fatal("in main while writing entity to file");
+    write(fd, "\n", 1);
 }
 
 int main(int argc, char *argv[])
@@ -79,12 +117,12 @@ int main(int argc, char *argv[])
         if (c == '1')
         {
             while ((getchar()) != '\n');
-            writeToDB();
+            writeToDB(fd);
         }
         else if (c == '2')
         {
             while ((getchar()) != '\n');
-            readFromDB();
+            readFromDB(fd);
         }
         else if (c == 'q')
         {
@@ -95,31 +133,6 @@ int main(int argc, char *argv[])
         printf(">>> ");
         c = getchar();
     }
-
-    // struct Entity entity;
-    // int entitySize = sizeof(entity);
-    // entity.id = 10;
-    // entity.lastTime = 123;
-
-    // memset(entity.fullName, 0, sizeof(entity.fullName));
-    // memset(entity.email, 0, sizeof(entity.email));
-    // memset(entity.description, 0, sizeof(entity.description));
-
-
-    // char *fullName = "Denis Dubinin";
-    // char *email = "dadubinin@gmail.com";
-    // char *description = "long description";
-
-    // strncpy(entity.fullName, fullName, strlen(fullName));
-    // strncpy(entity.email, email, strlen(email));
-    // strncpy(entity.description, description, strlen(description));
-
-    // printf("[DEBUG] entity@ %p: \n", &entity);
-
-    // // writing data
-    // if(write(fd, &entity, entitySize) == -1) 
-    //     fatal("in main while writing entity to file");
-    // write(fd, "\n", 1);
 
     if (close(fd) == -1)
         fatal("in main while closing file");
